@@ -4101,7 +4101,17 @@ function putVcardToCollection(inputContactObjArr, inputFilterUID, recursiveMode,
 	}
 	else	// new contact
 	{
-		var vcardFile=String(CryptoJS.SHA256(inputContactObj.vcard+(new Date().getTime())))+'.vcf';
+		var vcardFile='';
+
+		// Hey, thanks a bunch for having to dig this back out from the vcard text...
+
+		var UIDText=inputContactObj.vcard.match(vCard.pre['contentline_UID']);
+
+		if (UIDText!=null && UIDText.length==1)
+			vcardFile=UIDText[0].match(vCard.pre['contentline_parse'])[4]+'.vcf';
+		else
+			vcardFile=String(CryptoJS.SHA256(inputContactObj.vcard+(new Date().getTime())))+'.vcf';
+
 		var put_href=tmp[1]+tmp[3]+tmp[4]+tmp[5]+vcardFile;
 		var put_href_part=tmp[4]+tmp[5]+vcardFile;
 		inputContactObj.uid+=vcardFile;
