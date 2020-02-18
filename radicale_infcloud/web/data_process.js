@@ -7523,6 +7523,7 @@ function normalizeVcard(vcardString)
 				break;
 			case 'X-EVOLUTION-ANNIVERSARY':
 			case 'X-ANNIVERSARY':
+      case 'ANNIVERSARY':
 				attr_name='X-ABDATE';
 				params_swc='';
 				tmp=parsed[4].match(vCard.pre['normalizeVcard_date']);
