@@ -971,12 +971,13 @@ var globalActiveAddressbookCollections=[];
 //     itemX.X-ABLabel:_$!<Anniversary>!$_\r\n'
 //   other clients store this attribute as:
 //     X-ANNIVERSARY:2000-01-01\r\n
-//   Choose 'apple' or 'other' (lower case) for your 3rd party client
-//   compatibility. You can chose both: ['apple', 'other'], but it may
+//   Choose 'apple', 'davx5' or 'other' (lower case) for your 3rd party client
+//   compatibility. You can chose several: ['apple', 'other'], but it may
 //   cause many problems in the future, for example: duplicate anniversary
 //   dates, invalid/old anniversary date in your clients, ...)
 //   Examples:
 //     anniversaryOutputFormat: ['other']
+//     anniversaryOutputFormat: ['davx5']
 //     anniversaryOutputFormat: ['apple', 'other']
 // Example:
 var globalCompatibility={anniversaryOutputFormat: ['apple']};

@@ -4647,18 +4647,28 @@ function dataToVcard(accountUID, inputUID, inputFilterUID, inputEtag)
 
 					if(incGroupCounter) groupCounter++;
 
+					if(globalSettings.compatibility.value.anniversaryOutputFormat.indexOf('apple')!=-1)
+					{
+						vCardText+=process_elem;
+					}
+
+					if(globalSettings.compatibility.value.anniversaryOutputFormat.indexOf('davx5')!=-1)
+					{
+						// ANNIVERSARY
+						if(tmp_type==':_$!<anniversary>!$_:')
+						{
+							vCardText+='ANNIVERSARY;VALUE=date:'+vcardEscapeValue(date_value)+'\r\n';
+						}
+					}
+
 					if(globalSettings.compatibility.value.anniversaryOutputFormat.indexOf('other')!=-1)
 					{
 						// X-ANNIVERSARY
 						if(tmp_type==':_$!<anniversary>!$_:')
 						{
-							if(globalSettings.compatibility.value.anniversaryOutputFormat.indexOf('apple')!=-1)
-								vCardText+=process_elem;
-							process_elem='X-ANNIVERSARY;VALUE=date:'+vcardEscapeValue(date_value)+'\r\n';
+							vCardText+='X-ANNIVERSARY;VALUE=date:'+vcardEscapeValue(date_value)+'\r\n';
 						}
-
 					}
-					vCardText+=process_elem;
 				}
 			}
 		});
