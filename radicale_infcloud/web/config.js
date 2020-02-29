@@ -980,7 +980,7 @@ var globalActiveAddressbookCollections=[];
 //     anniversaryOutputFormat: ['davx5']
 //     anniversaryOutputFormat: ['apple', 'other']
 // Example:
-var globalCompatibility={anniversaryOutputFormat: ['apple']};
+var globalCompatibility={anniversaryOutputFormat: ['other']};
 
 
 // globalUriHandler{Tel,Email,Url,Profile}
