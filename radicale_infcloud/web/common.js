@@ -2124,6 +2124,17 @@ dataTypes['im_service_type_store_as']={
 	'skype':'Skype'
 };
 
+dataTypes['im_prefix_to_service_type']={
+	'qq':'QQ',
+	'aim':'AIM',
+	'icq':'ICQ',
+	'xmpp':'Jabber',
+	'msnim':'MSN',
+	'skype':'Skype',
+	'ymsgr':'Yahoo',
+	'google-talk':'GoogleTalk'
+};
+
 dataTypes['profile_type']={
 	'twitter': RegExp('^twitter$'),
 	'facebook': RegExp('^facebook$'),

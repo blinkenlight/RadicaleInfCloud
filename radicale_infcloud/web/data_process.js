@@ -7533,7 +7533,7 @@ function normalizeVcard(vcardString)
 				break;
 			case 'X-EVOLUTION-ANNIVERSARY':
 			case 'X-ANNIVERSARY':
-      case 'ANNIVERSARY':
+			case 'ANNIVERSARY':
 				attr_name='X-ABDATE';
 				params_swc='';
 				tmp=parsed[4].match(vCard.pre['normalizeVcard_date']);
@@ -7624,10 +7624,35 @@ function normalizeVcard(vcardString)
 				break;
 			case 'IMPP':
 				attr_name=parsed[2];
-				params_swc=params_array.sort().join(';').toUpperCase();	// we need upper case here to remove duplicate values later
 
-				// remove the '*:' from the '*:value'
-				//  but we add them back during the vcard generation from the interface
+				// inject an artificial X-SERVICE-TYPE param as detected from the URI prefix
+				// if none already exists, or else this element will simply be ignored later
+				// and if it isn't obvious: that would be a rather irresponsible thing to do
+				if(params_array.some(param => param.toUpperCase().includes('X-SERVICE-TYPE='))!=true)
+				{
+					var prefix=vcardSplitValue(parsed[4], ':')[0];
+
+					if(prefix!='')
+					{
+						// custom prefixes pass straight through to show up as a custom service type
+						var tmp_service_type=prefix.toLowerCase();
+
+						// convert the better-known prefix types to the corresponding service type
+						if(dataTypes['im_prefix_to_service_type'][prefix.toLowerCase()]!=undefined)
+							tmp_service_type=dataTypes['im_prefix_to_service_type'][prefix.toLowerCase()];
+
+						// after the join it generates ';' after the attribute name
+						if(params_array.length==0)
+							params_array[0]='';
+
+						params_array[params_array.length]='X-SERVICE-TYPE='+tmp_service_type;
+					}
+				}
+
+				// we need upper case here to remove duplicate values later
+				params_swc=params_array.sort().join(';').toUpperCase();
+
+				// remove the '*:' prefix from '*:value', it's regenerated at vcard write
 				attr_value=vcardSplitValue(parsed[4], ':').splice(1, 1).join('')
 				break;
 			case 'X-ASSISTANT':
