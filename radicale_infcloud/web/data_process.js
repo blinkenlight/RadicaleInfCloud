@@ -5220,6 +5220,7 @@ function dataToVcard(accountUID, inputUID, inputFilterUID, inputEtag)
 
 					params_wsc=params_wsc_old_repr='';
 					tmp_normal_types=tmp_type.replace(RegExp(':.*:','g'),',').replaceAll(',,',',').replace(RegExp('^,|,$','g'),'');
+
 					if(tmp_normal_types!='')
 						params_wsc=params_wsc_old_repr=';TYPE='+vcardEscapeValue(tmp_normal_types).toUpperCase().replace(RegExp('\\\\,','g'),';TYPE=');
 
@@ -5234,47 +5235,28 @@ function dataToVcard(accountUID, inputUID, inputFilterUID, inputEtag)
 						if((tmp_cust_already_exists=$(element).find('[data-type="im_service_type"] option').filter(function(){return $(this).html()==tmp_cust_value_processed;}).attr('data-type'))!=undefined)
 							tmp_service_type=tmp_cust_already_exists;
 						else	// use custom type
-							tmp_service_type=':'+tmp_cust_value+':';
+							tmp_service_type=tmp_cust_value;
 					}
 
+					// If this is a known service type, format it appropriately to be used as the value of the "X-SERVICE_TYPE" parameter
 					if(dataTypes['im_service_type_store_as'][tmp_service_type]!=undefined)
 						tmp_service_type=dataTypes['im_service_type_store_as'][tmp_service_type];
-					params_wsc=';X-SERVICE-TYPE='+vcardEscapeValue(tmp_service_type)+params_wsc;
+
+					// Only add the non-standard "service type" parameter if a compatibility option explicitly requires it
+					if(globalSettings.compatibility.value.messengerOutputFormat.indexOf('apple')!=-1)
+						params_wsc=';X-SERVICE-TYPE='+vcardEscapeValue(tmp_service_type)+params_wsc;
 
 					process_elem=process_elem.replace('##:::##params_wsc##:::##',params_wsc);
-					switch(tmp_service_type.toLowerCase())	// RFC4770
-					{
-						case 'aim':
-							im_value='aim:'+vcardEscapeValue(value);
-							break;
-						case 'facebook':
-							im_value='xmpp:'+vcardEscapeValue(value);
-							break;
-						case 'googletalk':
-							im_value='xmpp:'+vcardEscapeValue(value);
-							break;
-						case 'icq':
-							im_value='aim:'+vcardEscapeValue(value);
-							break;
-						case 'irc':
-							im_value='irc:'+vcardEscapeValue(value);
-							break;
-						case 'jabber':
-							im_value='xmpp:'+vcardEscapeValue(value);
-							break;
-						case 'msn':
-							im_value='msnim:'+vcardEscapeValue(value);
-							break;
-						case 'skype':
-							im_value='skype:'+vcardEscapeValue(value);
-							break;
-						case 'yahoo':
-							im_value='ymsgr:'+vcardEscapeValue(value);
-							break;
-						default:	// 'gadugadu', 'qq', ...
+
+					// If this service type has a known prefix, use it; if not, prepend either "x-apple" or the service type itself as a prefix based on selected compatibility option
+					if(dataTypes['im_service_type_to_prefix'][tmp_service_type.toLowerCase()]!=undefined)
+						im_value=dataTypes['im_service_type_to_prefix'][tmp_service_type.toLowerCase()]+':'+vcardEscapeValue(value);
+					else
+						if(globalSettings.compatibility.value.messengerOutputFormat.indexOf('apple')!=-1)
 							im_value='x-apple:'+vcardEscapeValue(value);
-							break;
-					}
+						else
+							im_value=vcardEscapeValue(tmp_service_type.toLowerCase())+':'+vcardEscapeValue(value);
+
 					process_elem=process_elem.replace('##:::##value##:::##',im_value);
 
 					my_related='';
@@ -5292,87 +5274,93 @@ function dataToVcard(accountUID, inputUID, inputFilterUID, inputEtag)
 						else
 							process_elem='item'+groupCounter+'.'+process_elem+'item'+groupCounter+'.'+my_related;
 					}
+
 					if(incGroupCounter) groupCounter++;
 
-					// In addition of the IMPP attributes add also the old style X-* attributes
-					process_elem_old_repr='';
-					switch(tmp_service_type.toLowerCase())
+					// In addition of the IMPP attributes add also the old style X-* attributes but only if 'other' compatibility is explicitly specified
+					if(globalSettings.compatibility.value.messengerOutputFormat.indexOf('other')!=-1)
 					{
-						case 'aim':
-							new_group_wd='';
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-AIM').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
-							break;
-						case 'jabber':
-							new_group_wd='';
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-JABBER').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
-							break;
-						case 'msn':
-							new_group_wd='';
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-MSN').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
-							break;
-						case 'yahoo':
-							new_group_wd='';
-							process_elem_tmp=process_elem;
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem_tmp).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-YAHOO').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+						process_elem_old_repr='';
 
-							new_group_wd='';
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem_tmp).replace(RegExp('\r\nitem'+(groupCounter-2)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-YAHOO-ID').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
-							break;
-						case 'icq':
-							new_group_wd='';
-							if(incGroupCounter)
-							{
-								new_group_wd='item'+groupCounter+'.';
-								process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
-								groupCounter++;
-							}
-							else
-								process_elem_old_repr='\r\n'+process_elem;
-							process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-ICQ').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
-							break;
-						default:
-							break;
+						switch(tmp_service_type.toLowerCase())
+						{
+							case 'aim':
+								new_group_wd='';
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-AIM').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+								break;
+							case 'jabber':
+								new_group_wd='';
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-JABBER').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+								break;
+							case 'msn':
+								new_group_wd='';
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-MSN').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+								break;
+							case 'yahoo':
+								new_group_wd='';
+								process_elem_tmp=process_elem;
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem_tmp).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-YAHOO').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+
+								new_group_wd='';
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem_tmp).replace(RegExp('\r\nitem'+(groupCounter-2)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-YAHOO-ID').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+								break;
+							case 'icq':
+								new_group_wd='';
+								if(incGroupCounter)
+								{
+									new_group_wd='item'+groupCounter+'.';
+									process_elem_old_repr=('\r\n'+process_elem).replace(RegExp('\r\nitem'+(groupCounter-1)+'\\.','mg'),'\r\n'+new_group_wd);
+									groupCounter++;
+								}
+								else
+									process_elem_old_repr='\r\n'+process_elem;
+								process_elem+=process_elem_old_repr.replace('\r\n'+new_group_wd+'IMPP;X-SERVICE-TYPE='+ vcardEscapeValue(tmp_service_type),new_group_wd+'X-ICQ').replace(im_value+'\r\n',vcardEscapeValue(value)+'\r\n');
+								break;
+							default:
+								break;
+						}
 					}
+
 					vCardText+=process_elem;
 				}
 			}
@@ -7143,7 +7131,7 @@ function vcardToData(inputContact, inputIsReadonly, inputIsCompany, inputEditorM
 				// parsed_value = [1..]->IMPP-params
 				var parsed_value=vcardSplitParam(parsed[3]);
 
-				// click to "add" button if not enought data rows present
+				// click to "add" button if not enough data rows present
 				var tmp_sel=tmpvCardEditorRef.find('[data-type="\\%im"]').last();
 				if(tmp_sel.find('[data-type="value"]').val()!='')
 					tmp_sel.find('[data-type="\\%add"]').find('input[type="image"]').click();
@@ -7811,9 +7799,10 @@ function normalizeVcard(vcardString)
 		// add the new grouped element to output
 		vcard_out_grouped[vcard_out_grouped.length]=grouped_elem.sort().join('');
 	}
-//
-// after the transformation and grouping we remove all identical elements and preserve sorting
-	//  (for example X-AIM and IMPP;X-SERVICE-TYPE=AIM, ...)
+
+	// after the transformation and grouping we remove all identical elements and preserve sorting
+	// (for example X-AIM and IMPP;X-SERVICE-TYPE=AIM, ...) basically, crawl the array backwards
+	// from its end and drop any element that gets found in any of the preceding data
 	for(var i=vcard_out_grouped.length-1;i>=0;i--)
 		if(vcard_out_grouped.slice(0,i).indexOf(vcard_out_grouped[i])!=-1)
 			vcard_out_grouped.splice(i,1);

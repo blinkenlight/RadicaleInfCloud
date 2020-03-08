@@ -971,6 +971,8 @@ var globalActiveAddressbookCollections=[];
 //     itemX.X-ABLabel:_$!<Anniversary>!$_\r\n'
 //   other clients store this attribute as:
 //     X-ANNIVERSARY:2000-01-01\r\n
+//   or, like DAVx5 does:
+//     ANNIVERSARY:2000-01-01\r\n
 //   Choose 'apple', 'davx5' or 'other' (lower case) for your 3rd party client
 //   compatibility. You can chose several: ['apple', 'other'], but it may
 //   cause many problems in the future, for example: duplicate anniversary
@@ -979,8 +981,29 @@ var globalActiveAddressbookCollections=[];
 //     anniversaryOutputFormat: ['other']
 //     anniversaryOutputFormat: ['davx5']
 //     anniversaryOutputFormat: ['apple', 'other']
+// - messengerOutputFormat
+//   Different clients use different (and incompatible) approach
+//   to store instant messenger IDs in vCards. Apple stores this attribute as:
+//     itemX.IMPP;TYPE=WORK;X-SERVICE-TYPE=Yahoo:ymsgr:someYahooID\r\n
+//   and possibly also something like
+//     itemX.X-ABLabel:mobileme\r\n
+//   other clients store this attribute as:
+//     X-YAHOO;TYPE=WORK:someYahooID\r\n
+//   or possibly
+//     X-YAHOO-ID;TYPE=WORK:someYahooID\r\n
+//   or, like DAVx5 does:
+       IMPP;TYPE=WORK:ymsgr:someYahooID\r\n
+//   Choose 'apple', 'davx5' or 'other' (lower case) for your 3rd party client
+//   compatibility. You can chose several: ['apple', 'other'], but it may
+//   cause many problems in the future, for example: duplicate messenger ID
+//   data, invalid/old messenger ID data in your clients, ...)
+//   Examples:
+//     messengerOutputFormat: ['other']
+//     messengerOutputFormat: ['davx5']
+//     messengerOutputFormat: ['apple', 'other']
 // Example:
-var globalCompatibility={anniversaryOutputFormat: ['other']};
+var globalCompatibility={anniversaryOutputFormat: ['other'],
+                         messengerOutputFormat: ['other']};
 
 
 // globalUriHandler{Tel,Email,Url,Profile}

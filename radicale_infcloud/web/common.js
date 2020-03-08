@@ -2135,6 +2135,19 @@ dataTypes['im_prefix_to_service_type']={
 	'google-talk':'GoogleTalk'
 };
 
+dataTypes['im_service_type_to_prefix']={
+	'qq':'qq',
+	'aim':'aim',
+	'icq':'icq',
+	'irc':'irc',
+	'msn':'msnim',
+	'skype':'skype',
+	'yahoo':'ymsgr',
+	'jabber':'xmpp',
+	'facebook':'xmpp',
+	'googletalk':'google-talk'
+};
+
 dataTypes['profile_type']={
 	'twitter': RegExp('^twitter$'),
 	'facebook': RegExp('^facebook$'),
